@@ -16,7 +16,6 @@ services:
     depends_on:
       - postgres
       - redis
-      - postfix
     restart: "always"
 
   postgres:
@@ -32,12 +31,3 @@ services:
     volumes:
       - ./docker-volume/redis:/data
     restart: "always"
-
-  postfix:
-    image: mwader/postfix-relay
-    env_file:
-      - .env
-    volumes:
-      - ./docker-volume/opendkim/keys:/etc/opendkim/keys
-    restart: "always"
-
