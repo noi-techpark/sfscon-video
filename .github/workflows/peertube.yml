@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: 2025 NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: CI/CD Peertube
+on:
+  push:
+    paths: 
+      - "infrastructure/**"
+      - ".github/workflows/peertube.yml"
+
+env:
+  PROJECT_NAME: sfscon-peertube
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/main'
+    concurrency: 
+      group: deploy-test
+      cancel-in-progress: true
+    env:
+      SERVER_PORT: 1014
+      POSTGRES_USER: peertube
+      POSTGRES_PASS: ${{ secrets.TEST_POSTGRES_PASS }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Create .env file
+        uses: noi-techpark/github-actions/env-file@v2
+        env:
+          X_SERVER_PORT: ${{ env.SERVER_PORT }}
+          X_DATA_DIR: /opt/sfscon-peertube
+
+          # root user password
+          X_PT_INITIAL_ROOT_PASSWORD: ${{ secrets.TEST_ROOT_PASS }}
+
+          # Database / Postgres service configuration
+          X_POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          X_POSTGRES_PASSWORD: ${{ env.POSTGRES_PASS }}
+          X_POSTGRES_DB: peertube
+
+          X_PEERTUBE_DB_USERNAME: ${{ env.POSTGRES_USER }}
+          X_PEERTUBE_DB_PASSWORD: ${{ env.POSTGRES_PASS }}
+          X_PEERTUBE_DB_SSL: false
+          X_PEERTUBE_DB_HOSTNAME: postgres
+
+          # PeerTube server configuration
+          X_PEERTUBE_WEBSERVER_HOSTNAME: video.sfscon.testingmachine.eu
+          X_PEERTUBE_WEBSERVER_PORT: ${{ env.SERVER_PORT }}
+          X_PEERTUBE_WEBSERVER_HTTPS: false
+          X_PEERTUBE_TRUST_PROXY: '["proxy.testingmachine.eu", "52.16.145.216"]'
+
+          X_PEERTUBE_SECRET: ${{ secrets.TEST_PEERTUBE_SECRET }}
+
+          # E-mail configuration
+          # We don't actually run the email service in compose, it just needs it to start
+          X_PEERTUBE_SMTP_HOSTNAME: postfix
+          X_PEERTUBE_SMTP_PORT: 25
+          X_PEERTUBE_SMTP_FROM: noreply@domain.org
+          X_PEERTUBE_SMTP_TLS: false
+          X_PEERTUBE_SMTP_DISABLE_STARTTLS: false
+          X_PEERTUBE_ADMIN_EMAIL: admin@domain.org
+
+          X_PEERTUBE_LOG_LEVEL: info
+
+          X_PEERTUBE_SIGNUP_ENABLED: false
+          X_PEERTUBE_CONTACT_FORM_ENABLED: false
+
+      - name: Deploy application
+        uses: noi-techpark/github-actions/docker-deploy@v2
+        with:
+          hosts: 'test'
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          docker-username: 'noi-techpark-bot'
+          docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          project-name: ${{ env.PROJECT_NAME }}
