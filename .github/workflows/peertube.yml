@@ -48,8 +48,7 @@ jobs:
 
           # PeerTube server configuration
           X_PEERTUBE_WEBSERVER_HOSTNAME: video.sfscon.testingmachine.eu
-          X_PEERTUBE_WEBSERVER_PORT: ${{ env.SERVER_PORT }}
-          X_PEERTUBE_WEBSERVER_HTTPS: false
+          X_PEERTUBE_WEBSERVER_HTTPS: true
           X_PEERTUBE_TRUST_PROXY: '["52.16.145.216"]'
 
           X_PEERTUBE_SECRET: ${{ secrets.TEST_PEERTUBE_SECRET }}
