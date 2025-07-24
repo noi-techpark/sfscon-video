@@ -5,11 +5,11 @@
 services:
 
   peertube:
-    image: chocobozzz/peertube:production-bookworm
+    image: chocobozzz/peertube:v7.2.3-bookworm
     env_file:
       - .env
     ports:
-     - '${SERVER_PORT}:${SERVER_PORT}'
+     - '${SERVER_PORT}:9000'
     volumes:
       - ${DATA_DIR}/data:/data
       - ${DATA_DIR}/config:/config
